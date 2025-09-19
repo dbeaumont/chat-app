@@ -103,8 +103,8 @@ flowchart TD
     C(PostMessageUseCase) --> D(MessageCommandPort)
     E(MessageController) --> C
     E --> A
-    B --> F(MessagePersistanceAdapter)
-    D --> F
+    B --> |est implémenté par|F(MessagePersistanceAdapter) 
+    D --> |est implémenté par|F
 ```
 
 ---
