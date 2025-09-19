@@ -1,0 +1,28 @@
+{
+  "name": "chat-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "ng build",
+    "start": "ng serve --host 0.0.0.0 --port 4200"
+  },
+  "dependencies": {
+    "@angular/animations": "18.1.2",
+    "@angular/common": "18.1.2",
+    "@angular/compiler": "18.1.2",
+    "@angular/core": "18.1.2",
+    "@angular/forms": "18.1.2",
+    "@angular/platform-browser": "18.1.2",
+    "@angular/platform-browser-dynamic": "18.1.2",
+    "@angular/router": "18.1.2",
+    "rxjs": "7.8.1",
+    "tslib": "2.6.2",
+    "zone.js": "0.14.7"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "18.1.2",
+    "@angular/cli": "18.1.2",
+    "@angular/compiler-cli": "18.1.2",
+    "typescript": "5.5.4"
+  }
+}

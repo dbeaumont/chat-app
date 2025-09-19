@@ -1,0 +1,16 @@
+<div class="container">
+  <h1>Chat Messages</h1>
+
+  <input type="text" [value]="input()" (input)="input.set($event.target.value)" placeholder="Type your message..." />
+  <button (click)="send()">Send</button>
+  <button (click)="refresh()" [disabled]="loading()">Refresh</button>
+
+  <h2>All messages</h2>
+  <div *ngIf="loading()">Loading…</div>
+  <ul>
+    <li *ngFor="let m of messages()">
+      <div>{{ m.text }}</div>
+      <div class="time">{{ m.createdAt }}</div>
+    </li>
+  </ul>
+</div>
