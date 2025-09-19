@@ -97,55 +97,19 @@ This ensures the **hexagonal architecture**: domain and use cases are at the cor
 
 ## Visual Architecture Diagram (ASCII)
 
-```
-                         ┌───────────────────────────────┐
-                         │           FRONTEND            │
-                         │        (Angular App)          │
-                         └───────────────┬───────────────┘
-                                         │ HTTP (REST)
-                                         ▼
-                           ┌───────────────────────────┐
-                           │        infrastructure     │
-                           │   (web + persistence)     │
-                           │  - MessageController      │
-                           │  - JPA Adapters           │
-                           └───────────────┬───────────┘
-                                           │ calls use cases
-                                           ▼
-                              ┌────────────────────────┐
-                              │      application       │
-                              │  - PostMessageUseCase  │
-                              │  - ListMessagesUseCase │
-                              └──────────────┬─────────┘
-                                             │ depends on ports
-                                             ▼
-                                 ┌────────────────────────┐
-                                 │        domain          │
-                                 │  - Message (model)     │
-                                 │  - Ports (Query/Cmd)   │
-                                 └─────────────┬──────────┘
-                                               │ implemented by
-                                               ▼
-                           ┌───────────────────────────┐
-                           │     infrastructure        │
-                           │   (persistence adapter)   │
-                           │  - Spring Data JPA Repo   │
-                           └───────────────┬───────────┘
-                                           │ JDBC
-                                           ▼
-                                    ┌──────────────┐
-                                    │ PostgreSQL   │
-                                    └──────────────┘
-
-   Runtime entrypoint:
-      app module ──> boots Spring (ChatApplication), imports infrastructure beans.
+```mermaid
+flowchart TD
+    A(ListMessageUseCase) --> B(MessageQueryPort)
+    C(PostMessageUseCase) --> D(MessageCommandPort)
+    E(MessageController) --> C
+    E --> A
+    B --> F(MessagePersistanceAdapter)
+    D --> F
 ```
 
 ---
 
 ## Alternative (Mermaid) – if your viewer supports it
-
-https://mermaid.live
 
 ```mermaid
 flowchart LR
