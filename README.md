@@ -88,7 +88,14 @@ npm install
 npm start
 ```
 
-App accessible sur [http://localhost:4200](http://localhost:4200).
+App accessible sur [http://localhost:8888](http://localhost:8888).
+
+### Base
+
+```bash
+docker compose exec -it db psql -U chat -d chat
+select * from messages;
+```
 
 ---
 
