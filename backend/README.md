@@ -95,7 +95,7 @@ This ensures the **hexagonal architecture**: domain and use cases are at the cor
 
 ---
 
-## Visual Architecture Diagram (ASCII)
+## Visual Architecture Diagram (Mermaid)
 
 ```mermaid
 flowchart TD
@@ -105,26 +105,6 @@ flowchart TD
     E --> A
     B --> F(MessagePersistanceAdapter)
     D --> F
-```
-
----
-
-## Alternative (Mermaid) – if your viewer supports it
-
-```mermaid
-flowchart LR
-  FE[Angular Frontend] -- REST --> WEB[Infrastructure: Web Adapter]
-  WEB --> UC[Application: Use Cases]
-  UC -->|ports| DMN[Domain: Model & Ports]
-  PERS[Infrastructure: Persistence Adapter] --> DB[(PostgreSQL)]
-  DMN <-- implemented by --> PERS
-  APP[App: Spring Boot Entrypoint] -. boots .- WEB
-  APP -. boots .- PERS
-  style DMN fill:#fff,stroke:#333
-  style UC fill:#f8f8f8,stroke:#333
-  style WEB fill:#f0f0ff,stroke:#333
-  style PERS fill:#f0fff0,stroke:#333
-  style APP fill:#fff8e1,stroke:#333
 ```
 
 ---
