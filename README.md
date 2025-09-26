@@ -133,7 +133,7 @@ docker-compose.yml
 ## Dépannage
 
 - **Vérifier une variable**  
-  → Vérifier la valeur d'une variable au sein d'un container qui s'exécute :
+  → Vérifier la valeur d'une variable au sein d'un container qui s'exécute (runtime) :
     ```bash
     docker exec -it chat_frontend env | grep API_BASE_URL
     ```
@@ -145,8 +145,27 @@ docker-compose.yml
     -H "Origin: http://localhost:8888" \
     -H "Access-Control-Request-Method: GET" \
     http://localhost:9080/api/messages
+
+  HTTP/1.1 200
+  X-Correlation-Id: da84544b-4b94-4c4b-a2fc-c7236e7d201a
+  Vary: Origin
+  Vary: Access-Control-Request-Method
+  Vary: Access-Control-Request-Headers
+  Access-Control-Allow-Origin: http://localhost:8888
+  Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+  Access-Control-Allow-Credentials: true
+  Access-Control-Max-Age: 3600
+  Content-Length: 0
+  Date: Fri, 26 Sep 2025 15:27:34 GMT
   ```  
   On doit voir des en-têtes `Access-Control-Allow-*` dans la réponse.
+
+- **Git**
+  → Créer un tag  
+  ```bash
+  git tag -a v1.1 -m "version  v1.1 avec les tests"
+  git push origin tag v1.1
+  ```
 
 ---
 
