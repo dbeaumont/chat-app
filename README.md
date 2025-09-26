@@ -54,13 +54,18 @@ flowchart LR
 
 ## 🐳 Démarrage rapide avec Docker Compose
 
-### 1. Prérequis
+### 1. Prérequis  
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/)
 
-### 2. Lancer l’environnement
+### 2. Lancer l’environnement  
+Windows/macOS  
 ```bash
 docker compose up --build
+```  
+Linux  
+```bash
+docker compose --profile linux-host-metrics up -d.
 ```
 
 ### 3. Accéder aux services

@@ -26,7 +26,15 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,prometheus
+        include: health,info,metrics,prometheus
   endpoint:
     health:
-      show-details: when_authorized
+      show-details: when_authorized   # en dev: 'always' si tu veux
+  metrics:
+    tags:
+      application: chat-backend
+      profile: ${spring.profiles.active:default}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
