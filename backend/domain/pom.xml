@@ -9,6 +9,9 @@
   </parent>
   <artifactId>domain</artifactId>
   <dependencies>
+
+<!--
+Pas de spring dans domain
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
@@ -17,5 +20,21 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
     </dependency>
+-->
+
+    <!-- JavaTime JSON -->
+    <!-- classe Message immutable, mais il faut pouvoir la sérialiser/désérialiser via Jackson -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+    </dependency>
+
+    <!-- Tests JUnit 5 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency> 
+
   </dependencies>
 </project>

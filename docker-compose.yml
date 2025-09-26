@@ -35,10 +35,11 @@ services:
         http://localhost:8888,
         http://127.0.0.1:8888,
         http://localhost:8080,
+        http://localhost:9080,
         http://localhost:4200,
         http://frontend
     ports:
-      - "8080:8080"
+      - "9080:8080"
 
   frontend:
     build: ./frontend
@@ -48,7 +49,7 @@ services:
     ports:
       - "8888:80"
     environment:
-      API_BASE_URL: http://localhost:8080
+      API_BASE_URL: http://localhost:9080
 
 volumes:
   db_data:

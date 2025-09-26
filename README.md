@@ -65,7 +65,7 @@ docker compose up --build
 
 ### 3. Accéder aux services
 - Frontend (Angular + Nginx) → [http://localhost:8888](http://localhost:8888)
-- Backend (Spring Boot REST API) → [http://localhost:8080/api/messages](http://localhost:8080/api/messages)
+- Backend (Spring Boot REST API) → [http://localhost:9080/api/messages](http://localhost:9080/api/messages)
 - PostgreSQL → `localhost:5432`, user/password: `chat/chat`
 
 ---
@@ -79,7 +79,7 @@ mvn clean install
 mvn -pl app spring-boot:run -Pdev
 ```
 
-API accessible sur [http://localhost:8080/api/messages](http://localhost:8080/api/messages).
+API accessible sur [http://localhost:9080/api/messages](http://localhost:9080/api/messages).
 
 ### Frontend
 ```bash
@@ -127,6 +127,26 @@ frontend/
  └── Dockerfile
 docker-compose.yml
 ```
+
+---
+
+## Dépannage
+
+- **Vérifier une variable**  
+  → Vérifier la valeur d'une variable au sein d'un container qui s'exécute :
+    ```bash
+    docker exec -it chat_frontend env | grep API_BASE_URL
+    ```
+
+- **Tester le CORS**  
+  → Vérifier si l'url d'invocation des api est possible depuis une autre origine :  
+  ```bash
+  curl -i -X OPTIONS \
+    -H "Origin: http://localhost:8888" \
+    -H "Access-Control-Request-Method: GET" \
+    http://localhost:9080/api/messages
+  ```  
+  On doit voir des en-têtes `Access-Control-Allow-*` dans la réponse.
 
 ---
 

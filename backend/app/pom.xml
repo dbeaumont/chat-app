@@ -7,17 +7,75 @@
     <artifactId>chat-backend</artifactId>
     <version>1.0.0</version>
   </parent>
+
   <artifactId>app</artifactId>
+
   <dependencies>
     <dependency>
       <groupId>com.example</groupId>
       <artifactId>infrastructure</artifactId>
-      <version>1.0.0</version>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
+      <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
+
+    <!-- Les dépendences de tests ne sont par récupérées par transitivité -->
+
+    <!-- Tests unitaires -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <!-- On évite Vintage -->
+        <exclusion>
+          <groupId>org.junit.vintage</groupId>
+          <artifactId>junit-vintage-engine</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- Testcontainers: JUnit5 + PostgreSQL pour IT -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Optionnel: H2 pour tests JPA rapides (unitaires) -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Optionnel: Awaitility -->
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -25,18 +83,28 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <classifier>fat</classifier> <!-- produit app-1.0.0-fat.jar sans toucher app.jar, sinon les classes de test IT de app ne voient pas les classes de app (visibles à travers le app-1.0.0.jar, pas le target/classes) -->
+          <!-- facultatif si Boot trouve la classe automatiquement -->
+          <mainClass>com.example.chat.app.ChatApplication</mainClass>
+          <!-- optionnel : activer les layers pour Docker -->
+          <layers enabled="true"/>
+          <!-- optionnel : exclure des deps dev -->
+          <excludes>
+            <exclude>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </exclude>
+          </excludes>
+        </configuration>
         <executions>
           <execution>
             <goals>
               <goal>repackage</goal>
             </goals>
+            <phase>package</phase>
           </execution>
         </executions>
-        <!-- Optionnel : forcer la détection de la classe main si besoin
-        <configuration>
-          <mainClass>com.example.chat.app.ChatApplication</mainClass>
-        </configuration>
-        -->
       </plugin>
     </plugins>
   </build>

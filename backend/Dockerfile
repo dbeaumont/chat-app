@@ -11,12 +11,12 @@ COPY infrastructure/pom.xml infrastructure/pom.xml
 COPY app/pom.xml app/pom.xml
 RUN mvn -q -f pom.xml -Dmaven.test.skip=true -DskipTests dependency:go-offline
 COPY . ./
-RUN mvn -q -DskipTests clean package
+RUN mvn -q -DskipTests clean package -Pprod
 
 # ===== Run stage =====
 FROM eclipse-temurin:21-jre
 ENV TZ=UTC
 WORKDIR /opt/app
-COPY --from=build /app/app/target/app-*.jar app.jar
+COPY --from=build /app/app/target/app-*-fat.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","app.jar"]

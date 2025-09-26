@@ -65,17 +65,44 @@ The backend is organized as a **multi-module Maven project** following a **hexag
 
 ## Build & Run
 
-From the `backend/` folder:
+### Profils
+
+- **Dev**  
+  → constuire le projet (schéma auto-géré, logs verbeux, DB locale)
+  → tests unitaires (sans IHM), en mockant avec H2.  
+  → tests avec l'IHM.  
+
+- **IT**  
+  → tests d'intégration (sans IHM), en utilisant un container PostgreSQL temporaire.  
+
+- **Prod**  
+  → constuire le projet pour docker compose (schéma validé par Flyway, logs sobres, DB Docker/Postgres en cluster)
+
+
+### Dev
 
 ```bash
-# Build all modules
-mvn clean install
+# Build && TU (H2)
+mvn clean install -Pdev
 
-# Run locally (with default Postgres on localhost)
-mvn -pl app spring-boot:run
+# Run && IHM
+SERVER_PORT=9080 mvn -pl app spring-boot:run -Pdev.    # ici : surcharge du port 8080 (utilisé par docker) par 9080
+http://localhost:8888
+```
+Le `-pl app` permet d'indiquer à maven de n'exécuter le `spring-boot:run` que sur le module **app**, sinon il serait lancé sur tous les modules.
 
-# Or build the Docker image
-docker build -t chat-backend ./backend
+### IT
+
+```bash
+# Build && TU (H2) && TI (Testcontainers PostgreSQL)
+mvn clean verify -Pit
+```
+
+### Prod
+
+```bash
+# Build pour la Prod
+mvn clean install -Pprod
 ```
 
 ---
@@ -109,48 +136,6 @@ flowchart TD
 
 ---
 
-## Build Pipeline Diagram (ASCII)
-
-```
- mvn clean install (at backend/)
-        │
-        ├──> domain (jar)
-        │
-        ├──> application (jar)  ── depends on domain
-        │
-        ├──> infrastructure (jar) ─ depends on application
-        │
-        └──> app (boot jar)       ─ depends on infrastructure
-                                   └─ produces runnable fat jar
-```
-
----
-
-## Commandes utiles Maven
-
-- **Construire tout le backend** :
-  ```bash
-  mvn clean install
-  ```
-- **Exécuter uniquement le module app** :
-  ```bash
-  mvn -pl app spring-boot:run
-  ```
-- **Compiler et packager sans tests** :
-  ```bash
-  mvn clean package -DskipTests
-  ```
-- **Rebuilder un module et ses dépendances** :
-  ```bash
-  mvn -pl infrastructure -am install
-  ```
-- **Lancer avec un profil spécifique** :
-  ```bash
-  mvn -pl app spring-boot:run -Pdev
-  ```
-
----
-
 ## Dépannage
 
 - **Erreur Flyway (migrations déjà appliquées)**  
@@ -168,188 +153,13 @@ flowchart TD
 - **Erreur de dépendance Maven manquante**  
   → Lancer `mvn clean install -U` pour forcer la mise à jour des dépendances locales.
 
----
-
-## Exemple de profils Maven (`app/pom.xml`)
-
-On peut définir plusieurs profils pour gérer des environnements différents (développement vs production).
-
-```xml
-<project>
-  ...
-  <profiles>
-    <profile>
-      <id>dev</id>
-      <properties>
-        <spring.profiles.active>dev</spring.profiles.active>
-        <skipTests>false</skipTests>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>prod</id>
-      <properties>
-        <spring.profiles.active>prod</spring.profiles.active>
-        <skipTests>true</skipTests>
-      </properties>
-    </profile>
-  </profiles>
-</project>
-```
-
-### Utilisation
-
-- **Démarrer avec profil dev** :
-  ```bash
-  mvn -pl app spring-boot:run -Pdev
-  ```
-- **Packager pour la prod** :
-  ```bash
-  mvn clean package -Pprod
-  ```
-
----
-
-## Exemple de configuration Spring Boot par environnement
-
-Dans le module `app/src/main/resources`, on peut définir plusieurs fichiers de configuration :
-
-### `application-dev.yml`
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/chat
-    username: chat
-    password: chat
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-server:
-  port: 8080
-logging:
-  level:
-    root: DEBUG
-```
-
-### `application-prod.yml`
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://db:5432/chat
-    username: chat
-    password: chat
-  jpa:
-    hibernate:
-      ddl-auto: validate
-  flyway:
-    enabled: true
-server:
-  port: 8080
-logging:
-  level:
-    root: INFO
-```
-
-### Comment les utiliser ?
-
-- Lorsqu’on lance Maven avec `-Pdev`, le profil `spring.profiles.active=dev` est appliqué, donc `application-dev.yml` est chargé.
-- Avec `-Pprod`, c’est `application-prod.yml` qui est utilisé.
-
-Cela permet d’avoir :
-
-- **Dev** : schéma auto-géré, logs verbeux, DB locale.
-- **Prod** : schéma validé par Flyway, logs sobres, DB Docker/Postgres en cluster.
-
----
-
-## Exemples `application-dev.yml` et `application-prod.yml`
-
-Place ces fichiers dans `backend/app/src/main/resources/`.
-
-### `application-dev.yml`
-
-```yaml
-server:
-  port: ${SERVER_PORT:8080}
-
-spring:
-  datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/chat}
-    username: ${SPRING_DATASOURCE_USERNAME:chat}
-    password: ${SPRING_DATASOURCE_PASSWORD:chat}
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate.format_sql: true
-      hibernate.jdbc.time_zone: UTC
-  flyway:
-    enabled: true
-
-logging:
-  level:
-    root: INFO
-    org.springframework.web: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-```
-
-### `application-prod.yml`
-
-```yaml
-server:
-  port: ${SERVER_PORT:8080}
-  compression:
-    enabled: true
-    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
-
-spring:
-  datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate.jdbc.time_zone: UTC
-  flyway:
-    enabled: true
-
-logging:
-  level:
-    root: INFO
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-  endpoint:
-    health:
-      show-details: when_authorized
-```
-
 ### Conseils d’utilisation
 
-- Active le profil voulu via Maven (ex. **dev**) :
-  ```bash
-  mvn -pl app spring-boot:run -Pdev
-  ```
 - En Docker/compose, passe les variables `SPRING_DATASOURCE_*` et `SERVER_PORT` via `environment:` (déjà prévu dans `docker-compose.yml`).
 - En prod, pense à définir un pool Hikari adapté (`spring.datasource.hikari.*`).
-
-## Test Database
-```bash
-docker compose exec -it db psql -U chat -d chat
-select * from messages;
-```
+- Pour testser si un port est déjà occupé sur Mac : `lsof -i :8080`
+- Tester le contenu de la base de données PostgreSQL (en mode docker compose) :
+  ```bash
+  docker compose exec -it db psql -U chat -d chat
+  select * from messages;
+  ```

@@ -1,0 +1,48 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate      # on laisse flyway générer le schéma
+    show-sql: true
+    properties:
+      hibernate.format_sql: true
+      hibernate.jdbc.time_zone: UTC
+
+  # --- Migrations ---
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  # --- Init SQL Spring (désactivé : on s'appuie sur Flyway) ---
+  sql:
+    init:
+      mode: never
+
+# Démarrage sur un port aléatoire pour les tests @SpringBootTest(webEnvironment=RANDOM_PORT)
+server:
+  port: 0
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+
+# Logs un peu plus verbeux en test d'intégration
+logging:
+  level:
+    root: INFO
+    org.springframework.test: INFO
+    org.hibernate.SQL: INFO
+    org.hibernate.orm.jdbc.bind: INFO
+
+# Optionnel : activer quelques endpoints Actuator utiles en IT
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
