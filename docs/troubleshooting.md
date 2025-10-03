@@ -80,11 +80,11 @@ flowchart TD
     C -- Non --> C2[Ajouter l'origine exacte dans CORS_ALLOWED_ORIGINS]
 
     B -- Non --> D{Header Authorization présent ?}
-    D -- Non --> D1[Front non loggé ou interceptor non actif<br/>→ Vérifier APP_INITIALIZER + AuthInterceptor]
-    D -- Oui --> E{JWT valide ? (iss/exp/signature)}
+    D -- Non --> D1["Front non loggé ou interceptor non actif<br/>→ Vérifier APP_INITIALIZER + AuthInterceptor"]
+    D -- Oui --> E{"JWT valide ? (iss/exp/signature)"}
     E -- Non --> E1[Aligner OIDC_ISSUER_URI avec iss du token<br/>et configurer JWK_SET_URI vers keycloak:8080]
     E -- Oui --> F{Toujours 403 ?}
-    F -- Oui --> F1[Autorisation manquante (roles/scopes)<br/>→ Assouplir règles ou ajouter le rôle]
+    F -- Oui --> F1["Autorisation manquante (roles/scopes)<br/>→ Assouplir règles ou ajouter le rôle"]
     F -- Non --> G[OK]
 ```
 
