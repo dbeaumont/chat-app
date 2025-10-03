@@ -46,54 +46,52 @@
   </dependencyManagement>
 
   <build>
-<!--    <pluginManagement> -->
-      <plugins>
-        <!-- Spring Boot plugin -->
-        <plugin>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-maven-plugin</artifactId>
-        </plugin>
+    <plugins>
+      <!-- Spring Boot plugin -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
 
-        <!-- Surefire (unit tests) -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.2.5</version>
-          <configuration>
-            <useModulePath>false</useModulePath>
-            <includes>
-              <include>**/*Test.java</include>
-              <include>**/*Tests.java</include>
-              <include>**/*TestCase.java</include>
-            </includes>
-            <skipTests>${skipTests}</skipTests>
-          </configuration>
-        </plugin>
+      <!-- Surefire (unit tests) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.5</version>
+        <configuration>
+          <useModulePath>false</useModulePath>
+          <includes>
+            <include>**/*Test.java</include>
+            <include>**/*Tests.java</include>
+            <include>**/*TestCase.java</include>
+          </includes>
+          <skipTests>${skipTests}</skipTests>
+        </configuration>
+      </plugin>
 
-        <!-- Failsafe (integration tests) -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <version>3.2.5</version>
-          <configuration>
-            <useModulePath>false</useModulePath>
-            <includes>
-              <include>**/*IT.java</include>
-              <include>**/*ITCase.java</include>
-            </includes>
-            <skipTests>${skipITs}</skipTests>
-          </configuration>
-          <executions>
-            <execution>
-              <goals>
-                <goal>integration-test</goal>
-                <goal>verify</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-      </plugins>
-<!--    </pluginManagement> -->
+      <!-- Failsafe (integration tests) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>3.2.5</version>
+        <configuration>
+          <useModulePath>false</useModulePath>
+          <includes>
+            <include>**/*IT.java</include>
+            <include>**/*ITCase.java</include>
+          </includes>
+          <skipTests>${skipITs}</skipTests>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 
   <profiles>

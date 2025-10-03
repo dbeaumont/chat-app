@@ -1,5 +1,29 @@
 # version: '3.8'
 services:
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: chat_keycloak
+    command: ["start-dev", "--http-relative-path=/", "--import-realm", "--hostname-strict=false"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+    ports:
+      - "8081:8080"   # accès local: http://localhost:8081/
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+    healthcheck:
+#      test: ["CMD-SHELL", "(command -v curl >/dev/null 2>&1 && curl -fsS http://localhost:8080/health/ready >/dev/null) || (command -v wget >/dev/null 2>&1 && wget -qO- http://localhost:8080/health/ready >/dev/null) || exit 1"]
+      test: "{ printf >&3 'GET /realms/demo/.well-known/openid-configuration HTTP/1.0\r\nHost: localhost\r\n\r\n'; cat <&3; } 3<>/dev/tcp/localhost/8080 | head -1 | grep 200"
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 120s
+    networks:
+      - chat-net
+
   db:
     image: postgres:16
     container_name: chat_db
@@ -16,6 +40,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    networks:
+      - chat-net
 
   backend:
     build: ./backend
@@ -23,7 +49,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      keycloak:
+        condition: service_healthy
     environment:
+      OIDC_ISSUER_URI: http://keycloak:8080/realms/demo
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/demo/protocol/openid-connect/certs
+      OIDC_CLIENT_ID: chat-app
+      OIDC_CLIENT_SECRET: ""    # client public (PKCE)
+      OIDC_PROVIDER_ID: oidc
+      OIDC_LOGOUT_REDIRECT_URI: http://localhost:9080/
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/chat
       SPRING_DATASOURCE_USERNAME: chat
       SPRING_DATASOURCE_PASSWORD: chat
@@ -44,6 +78,8 @@ services:
         http://frontend
     ports:
       - "9080:8080"
+    networks:
+      - chat-net
 
   frontend:
     build: ./frontend
@@ -54,18 +90,22 @@ services:
       - "8888:80"
     environment:
       API_BASE_URL: http://localhost:9080
+    networks:
+      - chat-net
 
   prometheus:
     image: prom/prometheus:latest
     container_name: chat_prometheus
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     ports:
       - "9090:9090"
     depends_on:
       - backend
+    networks:
+      - chat-net
 
   grafana:
     image: grafana/grafana-oss:latest
@@ -82,6 +122,8 @@ services:
       - ./monitoring/grafana/datasources/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
       - ./monitoring/grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
       - ./monitoring/grafana/dashboards/jvm_http_hikari.json:/etc/grafana/provisioning/dashboards/jvm_http_hikari.json:ro
+    networks:
+      - chat-net
 
   # (optionnel) métriques des conteneurs Docker
   cadvisor:
@@ -96,6 +138,8 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
     restart: unless-stopped
+    networks:
+      - chat-net
 
   # (optionnel) métriques “OS” du host (dans Docker c’est souvent accessoire)
   node-exporter:
@@ -108,7 +152,13 @@ services:
       - '--path.rootfs=/host'
     volumes:
       - '/:/host:ro,rslave'
+    networks:
+      - chat-net
 
 volumes:
   grafana_data:
   db_data:
+
+networks:
+  chat-net:
+    driver: bridge

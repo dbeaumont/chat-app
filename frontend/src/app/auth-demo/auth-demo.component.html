@@ -1,0 +1,14 @@
+
+<div style="max-width:720px;margin:2rem auto;font-family:system-ui,Arial">
+  <h2>Auth PKCE Demo</h2>
+  <p>
+    Statut: <strong>{{ auth.isAuthenticated() ? 'connecté' : 'non connecté' }}</strong>
+  </p>
+
+  <button (click)="login()" *ngIf="!auth.isAuthenticated()">Se connecter</button>
+  <button (click)="logout()" *ngIf="auth.isAuthenticated()">Se déconnecter</button>
+  <button (click)="loadMe()" *ngIf="auth.isAuthenticated()">/api/me</button>
+
+  <pre *ngIf="me" style="background:#f6f8fa;padding:1rem;border-radius:8px;overflow:auto">{{ me | json }}</pre>
+  <pre *ngIf="error" style="background:#fff3f3;padding:1rem;border-radius:8px;overflow:auto">{{ error | json }}</pre>
+</div>

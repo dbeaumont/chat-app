@@ -1,165 +1,81 @@
-# Backend Maven Modules Overview
+# Backend — Spring Boot (API + Sécurité)
 
-The backend is organized as a **multi-module Maven project** following a **hexagonal architecture**. Each module has a clear responsibility and explicit dependencies to enforce separation of concerns.
+## Sommaire
+- [Aperçu](#aperçu)
+- [Sécurité Spring](#sécurité-spring)
+  - [Resource Server JWT](#resource-server-jwt)
+  - [Validation du token (issuer / JWK)](#validation-du-token-issuer--jwk)
+  - [CORS](#cors)
+  - [Autorisations (routes publiques/privées)](#autorisations-routes-publiquesprivées)
+  - [Gestion des erreurs](#gestion-des-erreurs)
+- [Configuration](#configuration)
+  - [application.yml](#applicationyml)
+  - [Variables d’environnement](#variables-denvironnement)
+- [Tests manuels (curl)](#tests-manuels-curl)
+- [Profils](#profils)
 
----
+## Aperçu
+Le backend expose `/api/**` (REST) et fonctionne en **stateless**. L’authentification est réalisée via un JWT OIDC (Keycloak).
 
-## Parent Module: `backend/pom.xml`
+## Sécurité Spring
 
-- **Packaging**: `pom`
-- Defines common properties, dependency management (Spring Boot BOM), and shared build plugins.
-- Aggregates all submodules:
-  - `domain`
-  - `application`
-  - `infrastructure`
-  - `app`
+### Resource Server JWT
+Configuration principale : `SecurityFilterChain` active :
+- `http.cors(Customizer.withDefaults())`
+- `http.csrf(csrf -> csrf.disable())`
+- `authorizeHttpRequests` avec `permitAll` sur certaines routes et `authenticated()` pour le reste
+- `oauth2ResourceServer(oauth2 -> oauth2.jwt())`
+- `sessionManagement(...STATELESS)`
+- `authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())`
 
----
+### Validation du token (issuer / JWK)
+- **Issuer attendu** via `spring.security.oauth2.resourceserver.jwt.issuer-uri` (ENV `OIDC_ISSUER_URI`).
+- **Clés publiques (JWK)** via `spring.security.oauth2.resourceserver.jwt.jwk-set-uri` (ENV `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI`).  
+  > Dans notre setup, `issuer` pointe vers `http://localhost:8081` (côté navigateur), tandis que `jwk-set-uri` pointe vers `http://keycloak:8080` (côté réseau Docker).
 
-## Module: `domain`
+### CORS
+- Filtre `CorsFilter` configuré à partir de `CORS_ALLOWED_ORIGINS`.  
+- `OPTIONS /**` est `permitAll()` pour laisser passer le **préflight**.  
+- `allowedHeaders: *`, `allowedMethods: GET, POST, PUT, DELETE, OPTIONS, PATCH`, `maxAge: 3600`.
 
-- **ArtifactId**: `domain`
-- **Dependencies**: Only Spring core/context.
-- **Responsibilities**:
-  - Contains the **core business model** (`Message` entity as immutable value object).
-  - Declares **ports** (interfaces) for persistence and query operations.
-  - No Spring Boot dependencies (pure Java domain).
+### Autorisations (routes publiques/privées)
+- **Public** : `/actuator/health`, `/actuator/info`, `/v3/api-docs/**`, `/swagger-ui.html`, `/swagger-ui/**`, `/webjars/**`, `/favicon.ico`, `/api/public/**`.
+- **Privé** : tout le reste (`/api/**`) requiert un JWT valide.
 
----
+### Gestion des erreurs
+- **401 Unauthorized** : absence/invalidité du JWT.  
+- **403 Forbidden** : authentifié mais non autorisé (si vous ajoutez des règles fines par rôles).  
+- Entrée par défaut : `BearerTokenAuthenticationEntryPoint` pour réponses 401 standardisées.
 
-## Module: `application`
+## Configuration
 
-- **ArtifactId**: `application`
-- **Dependencies**: `domain`
-- **Responsibilities**:
-  - Implements **use cases** of the system (e.g. `PostMessageUseCase`, `ListMessagesUseCase`).
-  - Depends only on domain ports, not on infrastructure.
-  - Annotated with Spring `@Service` to integrate with Spring context.
+### `application.yml`
+```yaml
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OIDC_ISSUER_URI}
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:}
+```
 
----
+### Variables d’environnement
+- `OIDC_ISSUER_URI` : `http://localhost:8081/realms/demo`
+- `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI` : `http://keycloak:8080/realms/demo/protocol/openid-connect/certs`
+- `CORS_ALLOWED_ORIGINS` : `http://localhost,http://localhost:8888,...`
 
-## Module: `infrastructure`
-
-- **ArtifactId**: `infrastructure`
-- **Dependencies**: `application`
-- **Responsibilities**:
-  - Implements the **adapters** for external systems:
-    - **Persistence Adapter**: JPA + PostgreSQL implementation of domain ports.
-    - **Web Adapter**: REST controllers exposing the APIs.
-    - **Configuration**: CORS, Jackson, Spring Data JPA.
-  - Depends on Spring Boot starters (`web`, `data-jpa`), Flyway, and PostgreSQL driver.
-
----
-
-## Module: `app`
-
-- **ArtifactId**: `app`
-- **Dependencies**: `infrastructure`
-- **Responsibilities**:
-  - The **entrypoint** of the application (`ChatApplication`).
-  - Contains the Spring Boot bootstrap configuration.
-  - Holds **Flyway migrations** for PostgreSQL schema evolution.
-  - Produces the runnable **Spring Boot fat jar** (via `spring-boot-maven-plugin`).
-
----
-
-## Build & Run
-
-### Profils
-
-- **Dev**  
-  → constuire le projet (schéma auto-géré, logs verbeux, DB locale)
-  → tests unitaires (sans IHM), en mockant avec H2.  
-  → tests avec l'IHM.  
-
-- **IT**  
-  → tests d'intégration (sans IHM), en utilisant un container PostgreSQL temporaire.  
-
-- **Prod**  
-  → constuire le projet pour docker compose (schéma validé par Flyway, logs sobres, DB Docker/Postgres en cluster)
-
-
-### Dev
-
+## Tests manuels (curl)
 ```bash
-# Build && TU (H2)
-mvn clean install -Pdev
+# Préflight CORS
+curl -i -X OPTIONS http://localhost:9080/api/messages   -H 'Origin: http://localhost:8888'   -H 'Access-Control-Request-Method: GET'
 
-# Run && IHM
-SERVER_PORT=9080 mvn -pl app spring-boot:run -Pdev.    # ici : surcharge du port 8080 (utilisé par docker) par 9080
-http://localhost:8888
-```
-Le `-pl app` permet d'indiquer à maven de n'exécuter le `spring-boot:run` que sur le module **app**, sinon il serait lancé sur tous les modules.
-
-### IT
-
-```bash
-# Build && TU (H2) && TI (Testcontainers PostgreSQL)
-mvn clean verify -Pit
+# Appel protégé avec JWT
+export TOKEN='eyJhbGciOiJSUzI1NiIsInR5cCI...'   # access_token obtenu via le front
+curl -i http://localhost:9080/api/messages   -H "Authorization: Bearer $TOKEN"
 ```
 
-### Prod
-
-```bash
-# Build pour la Prod
-mvn clean install -Pprod
-```
-
----
-
-## Dependency Flow
-
-```
-[domain] <- [application] <- [infrastructure] <- [app]
-```
-
-- **Domain**: independent of all other modules.
-- **Application**: depends only on domain.
-- **Infrastructure**: depends on application.
-- **App**: depends on infrastructure.
-
-This ensures the **hexagonal architecture**: domain and use cases are at the core, while adapters (infrastructure, web, persistence) are at the edges.
-
----
-
-## Visual Architecture Diagram (Mermaid)
-
-```mermaid
-flowchart TD
-    A(ListMessageUseCase) --> B(MessageQueryPort)
-    C(PostMessageUseCase) --> D(MessageCommandPort)
-    E(MessageController) --> C
-    E --> A
-    B --> |est implémenté par|F(MessagePersistanceAdapter) 
-    D --> |est implémenté par|F
-```
-
----
-
-## Dépannage
-
-- **Erreur Flyway (migrations déjà appliquées)**  
-  → Vérifier la table `flyway_schema_history` dans la base, ajuster la version ou nettoyer la base.
-
-- **Erreur JPA `relation messages does not exist`**  
-  → Vérifier que Flyway a bien créé la table `messages` (migration exécutée au démarrage).
-
-- **Problème de connexion PostgreSQL**  
-  → Vérifier l’URL, l’utilisateur/mot de passe dans `application.yml`, et que le service `db` est bien démarré.
-
-- **Port déjà utilisé (8080 ou 5432)**  
-  → Modifier `SERVER_PORT` (backend) ou `ports` dans `docker-compose.yml`.
-
-- **Erreur de dépendance Maven manquante**  
-  → Lancer `mvn clean install -U` pour forcer la mise à jour des dépendances locales.
-
-### Conseils d’utilisation
-
-- En Docker/compose, passe les variables `SPRING_DATASOURCE_*` et `SERVER_PORT` via `environment:` (déjà prévu dans `docker-compose.yml`).
-- En prod, pense à définir un pool Hikari adapté (`spring.datasource.hikari.*`).
-- Pour testser si un port est déjà occupé sur Mac : `lsof -i :8080`
-- Tester le contenu de la base de données PostgreSQL (en mode docker compose) :
-  ```bash
-  docker compose exec -it db psql -U chat -d chat
-  select * from messages;
-  ```
+## Profils
+- **dev** : logs + H2 (si configuré), réglages de développement.  
+- **prod** : durcissement + connexion PostgreSQL via variables d’environnement.  
+- **it** : tests d’intégration avec dépendances optionnelles (ex: Testcontainers si activé).

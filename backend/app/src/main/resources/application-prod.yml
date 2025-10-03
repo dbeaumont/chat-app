@@ -18,6 +18,13 @@ spring:
     enabled: true          # mettez false si vos DBA migrent séparément
     locations: classpath:db/migration
     baseline-on-migrate: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OIDC_ISSUER_URI}
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:}
+
 logging:
   level:
     root: INFO
