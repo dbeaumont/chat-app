@@ -39,7 +39,7 @@ down: ## Stop and remove containers, networks, volumes
 	$(DC) down
 
 .PHONY: down-volumes
-down: ## Stop and remove containers, networks, volumes
+down-volumes: ## Stop and remove containers, networks, volumes
 	$(DC) down -v --remove-orphans
 
 .PHONY: restart
