@@ -1,12 +1,21 @@
 # ===== Build stage =====
-FROM node:20 AS build
+FROM node:22 AS build
+
 WORKDIR /app
+
+# Aligner la version de npm dans l'image sur celle qui génère le lock
+RUN corepack enable && corepack prepare npm@11.6.1 --activate
+
+# Copier *uniquement* les manifests avant l’install
 COPY package*.json ./
+
+# Regénère au besoin package-lock.json
 RUN if [ -f package-lock.json ]; then \
       npm ci --no-audit --no-fund ; \
     else \
       npm install --no-audit --no-fund ; \
     fi
+    
 COPY . ./
 RUN npm run build
 
