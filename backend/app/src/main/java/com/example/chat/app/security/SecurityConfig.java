@@ -94,7 +94,7 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .requestMatchers(
-              "/actuator/health", "/actuator/info",
+              "/actuator/health", "/actuator/info", "/actuator/prometheus", 
               "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**",
               "/webjars/**", "/favicon.ico",
               "/api/public/**"

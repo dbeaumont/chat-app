@@ -35,8 +35,12 @@ up-build: ## Rebuild and start (no cache)
 	$(DC) up -d
 
 .PHONY: down
-down: ## Stop and remove containers, networks
+down: ## Stop and remove containers, networks, volumes
 	$(DC) down
+
+.PHONY: down-volumes
+down: ## Stop and remove containers, networks, volumes
+	$(DC) down -v --remove-orphans
 
 .PHONY: restart
 restart: ## Restart the stack
@@ -90,6 +94,10 @@ backend-it: ## Run backend integration tests (profile it)
 backend-dev-run: ## Run backend locally (dev profile)
 	cd $(BACK_DIR)/app && mvn -q spring-boot:run -Dspring-boot.run.profiles=dev
 
+.PHONY: backend-exec
+backend-exec: ## Run backend integration tests (profile it)
+	docker compose exec -it backend sh
+
 # -------- Local frontend (outside Docker) --------
 .PHONY: frontend-install
 frontend-install: ## Install frontend deps
@@ -121,7 +129,6 @@ clean: ## Remove build artifacts (frontend dist + backend targets)
 .PHONY: tidy
 tidy: ## Format/readability tasks (placeholder)
 	@echo "(Add formatters or linters here if needed)"
-
 
 .PHONY: env
 env: ## Generate a fresh .env file with sensible defaults (overwrites existing)

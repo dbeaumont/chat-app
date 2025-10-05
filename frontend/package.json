@@ -3,28 +3,35 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "ng build",
-    "start": "ng serve --host 0.0.0.0 --port 4200",
-    "start:docker": "ng serve --host 0.0.0.0 --port 8888 --disable-host-check"
+    "start": "ng serve",
+    "build": "ng build --configuration production",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "engines": {
+    "node": ">=22.0.0"
   },
   "dependencies": {
-    "@angular/animations": "18.1.2",
-    "@angular/common": "18.1.2",
-    "@angular/compiler": "18.1.2",
-    "@angular/core": "18.1.2",
-    "@angular/forms": "18.1.2",
-    "@angular/platform-browser": "18.1.2",
-    "@angular/platform-browser-dynamic": "18.1.2",
-    "@angular/router": "18.1.2",
-    "rxjs": "7.8.1",
-    "tslib": "2.6.2",
-    "zone.js": "0.14.7",
-    "angular-oauth2-oidc": "^18.0.0"
+    "@angular/animations": "^19.0.0",
+    "@angular/common": "19.2.15",
+    "@angular/compiler": "19.2.15",
+    "@angular/core": "19.2.15",
+    "@angular/forms": "19.2.15",
+    "@angular/platform-browser": "19.2.15",
+    "@angular/platform-browser-dynamic": "19.2.15",
+    "@angular/router": "19.2.15",
+    "angular-oauth2-oidc": "^19.0.0",
+    "rxjs": "^7.8.1",
+    "tslib": "^2.6.2",
+    "zone.js": "^0.15.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "18.1.2",
-    "@angular/cli": "18.1.2",
-    "@angular/compiler-cli": "18.1.2",
-    "typescript": "5.5.4"
+    "@angular-devkit/build-angular": "19.2.5",
+    "@angular/cli": "^19.0.0",
+    "@angular/compiler-cli": "19.2.15",
+    "@types/node": "^20.12.7",
+    "eslint": "^9.12.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.8.0"
   }
 }
