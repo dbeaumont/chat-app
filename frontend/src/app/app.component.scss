@@ -1,0 +1,14 @@
+.sidenav-container { height: 100vh; }
+.toolbar { position: sticky; top: 0; z-index: 2; }
+.sidenav { width: 260px; padding: .5rem 0; }
+
+.brand { display: flex; align-items: center; gap: .5rem; font-weight: 600; padding: .75rem 1rem; }
+.brand .material-icons { font-size: 1.6rem; }
+.brand .brand-text { letter-spacing: .2px; }
+
+mat-nav-list a.mat-list-item { gap: .75rem; }
+.title { font-weight: 600; margin-left: .25rem; }
+.menu-btn { margin-right: .5rem; }
+.spacer { flex: 1; }
+.main { padding-top: 1.25rem; padding-bottom: 2rem; }
+.footer { padding-bottom: 1.25rem; }

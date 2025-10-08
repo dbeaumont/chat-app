@@ -9,7 +9,7 @@ COPY domain/pom.xml domain/pom.xml
 COPY application/pom.xml application/pom.xml
 COPY infrastructure/pom.xml infrastructure/pom.xml
 COPY app/pom.xml app/pom.xml
-RUN mvn -q -f pom.xml -Dmaven.test.skip=true -DskipTests dependency:go-offline
+RUN mvn -q -f pom.xml -Dmaven.test.skip=true -DskipTests dependency:go-offline -Pprod
 COPY . ./
 RUN mvn -q -DskipTests clean package -Pprod
 

@@ -1,0 +1,40 @@
+<mat-card class="elevated-card">
+  <mat-card-header>
+    <mat-card-title>Messages</mat-card-title>
+    <mat-card-subtitle class="small-muted">Page {{ page() }} / {{ pageCount() }}</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+
+  <div class="compose" style="display:flex; gap:.5rem; align-items:center; margin:.5rem 0 1rem 0;">
+    <mat-form-field appearance="outline" floatLabel="always" style="flex:1">
+      <mat-label>Nouveau message</mat-label>
+      <input matInput placeholder="Tapez votre message..." [(ngModel)]="draft" (keyup.enter)="send()" [disabled]="loading()">
+      <button mat-icon-button matSuffix aria-label="Effacer" (click)="draft = ''" [disabled]="loading() || !draft">
+        <span class="material-icons">close</span>
+      </button>
+    </mat-form-field>
+    <button mat-raised-button (click)="send()" [disabled]="!draft || !draft.trim() || loading()">Envoyer</button>
+    <button mat-stroked-button (click)="fetch()" [disabled]="loading()">Rafraîchir</button>
+  </div>
+
+    <mat-progress-bar *ngIf="loading()" mode="indeterminate"></mat-progress-bar>
+
+    <mat-list *ngIf="!loading() && paged()?.length">
+      <mat-list-item *ngFor="let m of paged()">
+        <div matListItemTitle>{{ m.text }}</div>
+        <div matListItemLine class="small-muted">{{ m.createdAt | date:'short' }}</div>
+      </mat-list-item>
+    </mat-list>
+
+    <div *ngIf="!loading() && (!paged() || paged().length === 0)" class="small-muted">
+      Aucun message.
+    </div>
+  </mat-card-content>
+
+  <mat-card-actions align="end">
+    <button mat-stroked-button (click)="prev()" [disabled]="page() <= 1">Précédent</button>
+    <button mat-stroked-button (click)="next()" [disabled]="page() >= pageCount()">Suivant</button>
+    <span class="small-muted" style="margin-left:auto">Total: {{ data().length }}</span>
+  </mat-card-actions>
+</mat-card>

@@ -1,34 +1,35 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MessageService, Message } from './message.service';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './app.component.html'
+  imports: [
+    CommonModule,
+    RouterOutlet, RouterLink, RouterLinkActive,
+    MatSidenavModule, MatToolbarModule, MatIconModule, MatListModule, MatButtonModule
+  ],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
-  private api = inject(MessageService);
-  input = signal('');
-  messages = signal<Message[]>([]);
-  loading = signal(false);
+export class AppComponent implements OnInit {
+  title = 'Chat App';
+  year = new Date().getFullYear();
+  sidenavOpen = signal(true);
 
-  constructor() { this.refresh(); }
-
-  refresh() {
-    this.loading.set(true);
-    this.api.list().subscribe({
-      next: (data) => { this.messages.set(data); this.loading.set(false); },
-      error: () => this.loading.set(false)
-    });
+  ngOnInit(): void {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark') document.body.classList.add('theme-dark');
   }
 
-  send() {
-    const text = this.input().trim();
-    if (!text) return;
-    this.api.post(text).subscribe({
-      next: (m) => { this.messages.set([...this.messages(), m]); this.input.set(''); },
-    });
+  toggleTheme(): void {
+    const isDark = document.body.classList.toggle('theme-dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
   }
 }

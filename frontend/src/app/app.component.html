@@ -1,16 +1,46 @@
-<div class="container">
-  <h1>Chat Messages</h1>
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav class="sidenav" mode="side" [opened]="sidenavOpen()">
+    <div class="brand">
+      <span class="material-icons">chat</span>
+      <span class="brand-text">Chat App</span>
+    </div>
+    <mat-nav-list>
+      <a mat-list-item routerLink="/auth" routerLinkActive="active">
+        <span class="material-icons">lock_open</span>
+        <span>Auth Demo</span>
+      </a>
+      <a mat-list-item routerLink="/messages" routerLinkActive="active">
+        <span class="material-icons">forum</span>
+        <span>Messages</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
 
-  <input type="text" [value]="input()" (input)="input.set($event.target.value)" placeholder="Type your message..." />
-  <button (click)="send()">Send</button>
-  <button (click)="refresh()" [disabled]="loading()">Refresh</button>
+  <mat-sidenav-content>
+    <mat-toolbar class="app-toolbar" class="toolbar" color="primary">
+      <button mat-icon-button class="menu-btn" (click)="sidenavOpen.set(!sidenavOpen())" aria-label="Menu">
+        <span class="material-icons">{{ sidenavOpen() ? 'menu_open' : 'menu' }}</span>
+      </button>
+      <span class="title">{{ title }}</span>
+      <span class="spacer"></span>
+      <a mat-icon-button href="https://angular.dev" target="_blank" aria-label="Angular">
+        <span class="material-icons">rocket</span>
+      </a>
+      <button mat-icon-button aria-label="Account">
+        <span class="material-icons">account_circle</span>
+      </button>
+      <span class="spacer" style="flex:1 1 auto"></span>
+  <button mat-icon-button aria-label="Basculer thème" (click)="toggleTheme()">
+    <span class="material-icons">dark_mode</span>
+  </button>
+</mat-toolbar>
 
-  <h2>All messages</h2>
-  <div *ngIf="loading()">Loading…</div>
-  <ul>
-    <li *ngFor="let m of messages()">
-      <div>{{ m.text }}</div>
-      <div class="time">{{ m.createdAt }}</div>
-    </li>
-  </ul>
-</div>
+    <main class="main container">
+      <router-outlet></router-outlet>
+    </main>
+
+    <footer class="footer container">
+      <span class="small-muted">© {{ year }} Chat App • Built with Angular</span>
+    </footer>
+  </mat-sidenav-content>
+</mat-sidenav-container>
