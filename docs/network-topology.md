@@ -7,7 +7,7 @@ flowchart LR
       KCui[Keycloak UI http://localhost:8081]
     end
 
-    subgraph Docker[Bridge network: chat-net]
+    subgraph Docker[Bridge network: app-net]
       FE[frontend:80]
       BE[backend:8080]
       KC[keycloak:8080]

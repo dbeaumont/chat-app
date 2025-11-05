@@ -1,13 +1,14 @@
 server:
   port: ${SERVER_PORT:8080}
+  forward-headers-strategy: framework      # Pour respecter les en-têtes X-Forwarded-* du proxy
 
 spring:
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${OIDC_ISSUER_URI}
-          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:}
+          issuer-uri: ${OIDC_ISSUER_URI:http://localhost:8081/realms/demo}
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCE_SERVER_JWT_JWK_SET_URI:http://localhost:8081/realms/demo/protocol/openid-connect/certs}
 
 # Logs plus verbeux en IT si besoin
 logging:

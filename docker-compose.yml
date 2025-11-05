@@ -1,34 +1,22 @@
+# Endpoints:
+# (use Firefox)
+# ----------
+# HTTPS
+#   - frontend : https://localhost/
+#   - keycloak : https://localhost/keycloak
+#   - backend  : https://localhost/api
+# HTTP
+#   - prometheus : http://localhost:9090
+#   - grafana : http://localhost:3000
+
 services:
-
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.4.0
-    container_name: chat_keycloak
-    command: ["start-dev", "--http-relative-path=/", "--import-realm", "--hostname-strict=false"]
-    environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-      KC_HEALTH_ENABLED: "true"
-      KC_METRICS_ENABLED: "true"
-    ports:
-      - "8081:8080"   # accès local: http://localhost:8081/
-    volumes:
-      - ./keycloak:/opt/keycloak/data/import
-    healthcheck:
-      test: "{ printf >&3 'GET /realms/demo/.well-known/openid-configuration HTTP/1.0\r\nHost: localhost\r\n\r\n'; cat <&3; } 3<>/dev/tcp/localhost/8080 | head -1 | grep 200"
-      interval: 10s
-      timeout: 5s
-      retries: 60
-      start_period: 120s
-    networks:
-      - chat-net
-
+  # Base de données PostgreSQL
   db:
     image: postgres:17
-    container_name: chat_db
     environment:
-      POSTGRES_USER: chat
-      POSTGRES_PASSWORD: chat
-      POSTGRES_DB: chat
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
@@ -39,105 +27,159 @@ services:
       timeout: 3s
       retries: 10
     networks:
-      - chat-net
+      - app-net
 
+  # Backend Spring Boot
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: chat_backend
-    depends_on:
-      db:
-        condition: service_healthy
-      keycloak:
-        condition: service_healthy
+    build: ./backend
     environment:
-      OIDC_ISSUER_URI: http://keycloak:8080/realms/demo
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/demo/protocol/openid-connect/certs
-      OIDC_CLIENT_ID: chat-app
-      OIDC_CLIENT_SECRET: ""    # client public (PKCE)
-      OIDC_PROVIDER_ID: oidc
-      OIDC_LOGOUT_REDIRECT_URI: http://localhost:9080/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/chat
-      SPRING_DATASOURCE_USERNAME: chat
-      SPRING_DATASOURCE_PASSWORD: chat
-      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
-      SERVER_PORT: 8080
-      # SERVER_PORT doit matcher le port utilisé au build du container (8080), pas le port souhaité au runtime 9080)
+      OIDC_ISSUER_URI: ${OIDC_ISSUER_URI}
+      SPRING_SECURITY_OAUTH2_RESOURCE_SERVER_JWT_JWK_SET_URI: ${SPRING_SECURITY_OAUTH2_RESOURCE_SERVER_JWT_JWK_SET_URI}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+      OIDC_PROVIDER_ID: ${OIDC_PROVIDER_ID}
+      OIDC_LOGOUT_REDIRECT_URI: ${OIDC_LOGOUT_REDIRECT_URI}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      # SERVER_PORT doit matcher le port utilisé au build du container (8080), pas le port souhaité au runtime 8081)
       # Cette variable sert pour maven (utilisée dans les fichiers .properties)
       # La surcharge de cette variable est nécessaire pour les tests de backend en dev (hors contexte docker compose)
       # Dans un contexte docker compose, laisser le port 8080, et surcharger au niveau "ports"
-      CORS_ALLOWED_ORIGINS: 
-        http://localhost,
-        http://localhost:80,
-        http://localhost:8888,
-        http://127.0.0.1:8888,
-        http://localhost:8080,
-        http://localhost:9080,
+      SERVER_PORT: ${SERVER_PORT}
+      CORS_ALLOWED_ORIGINS: >
         http://localhost:4200,
-        http://frontend
+        http://localhost:8080,
+        https://localhost,
+        http://127.0.0.1:4200
+    expose:
+      - 8080
     ports:
-      - "9080:8080"
+      - "8081:8080"
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://backend:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      test:
+        [
+          "CMD-SHELL",
+          'curl -fsS http://backend:8080/actuator/health | grep -q ''"status":"UP"''',
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
-      - chat-net
+      - app-net
 
+  # Frontend Angular
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: chat_frontend
+    build: ./frontend
+    environment:
+      API_BASE_URL: ${API_BASE_URL}
+    #      API_BASE_URL: https://gateway:8443
+    #      API_BASE_URL: http://localhost:8081
+    expose:
+      - 80
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "-G", "http://frontend:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     depends_on:
       backend:
         condition: service_healthy
-    ports:
-      - "8888:80"
-    environment:
-      API_BASE_URL: http://localhost:9080
     networks:
-      - chat-net
+      - app-net
 
+  # Keycloak pour l'authentification
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_HOSTNAME_PATH: ${KC_HOSTNAME_PATH}
+      KC_HOSTNAME_URL: ${KC_HOSTNAME_URL}
+      KC_HOSTNAME_ADMIN_URL: ${KC_HOSTNAME_ADMIN_URL}
+      KC_HOSTNAME_PORT: ${KC_HOSTNAME_PORT}
+      KC_HOSTNAME_STRICT: ${KC_HOSTNAME_STRICT}
+      KC_HOSTNAME_STRICT_HTTPS: ${KC_HOSTNAME_STRICT_HTTPS}
+      KC_HTTP_RELATIVE_PATH: ${KC_HTTP_RELATIVE_PATH}
+      KC_HTTP_PROXY_ADDRESS_FORWARDING: ${KC_HTTP_PROXY_ADDRESS_FORWARDING}
+      KC_PROXY: ${KC_PROXY}
+      KC_PROXY_HEADERS: ${KC_PROXY_HEADERS}
+      KC_HEALTH_ENABLED: ${KC_HEALTH_ENABLED}
+      KC_METRICS_ENABLED: ${KC_METRICS_ENABLED}
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    ports:
+      - "8082:8080"
+    networks:
+      - app-net
+
+  # Monitoring
   prometheus:
     image: prom/prometheus:latest
-    container_name: chat_prometheus
     volumes:
-      - ./prometheus/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - --config.file=/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://prometheus:9090/-/ready > /dev/null || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     networks:
-      - chat-net
+      - app-net
 
   grafana:
-    image: grafana/grafana-oss:latest
-    container_name: chat_grafana
+    image: grafana/grafana:latest
     ports:
       - "3000:3000"
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
-    depends_on:
-      - prometheus
+      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
+    # Si exposition https via caddy :
+    #      - GF_SERVER_ROOT_URL=https://localhost/grafana/
+    #      - GF_SERVER_SERVE_FROM_SUB_PATH=true
     volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/datasources/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
-      - ./monitoring/grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
-      - ./monitoring/grafana/dashboards/jvm_http_hikari.json:/etc/grafana/provisioning/dashboards/jvm_http_hikari.json:ro
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://grafana:3000/api/health > /dev/null || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
-      - chat-net
+      - app-net
 
   # (optionnel) métriques des conteneurs Docker
   cadvisor:
     profiles: ["linux-host-metrics"]
     image: gcr.io/cadvisor/cadvisor:latest
-    container_name: chat_cadvisor
     ports:
       - "8088:8080"
     volumes:
@@ -147,26 +189,58 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     restart: unless-stopped
     networks:
-      - chat-net
+      - app-net
 
-  # (optionnel) métriques “OS” du host (dans Docker c’est souvent accessoire)
+  # (optionnel) métriques “OS” du host
   node-exporter:
     profiles: ["linux-host-metrics"]
     image: prom/node-exporter:latest
-    container_name: chat_node_exporter
     ports:
       - "9100:9100"
     command:
-      - '--path.rootfs=/host'
+      - "--path.rootfs=/host"
     volumes:
-      - '/:/host:ro,rslave'
+      - "/:/host:ro,rslave"
     networks:
-      - chat-net
+      - app-net
+
+  # Caddy, pour la terminaison SSL
+  gateway:
+    image: caddy:2.8
+    command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--watch"]
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./.certs:/etc/caddy/certs
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      grafana:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "caddy", "version"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-net
 
 volumes:
+  caddy_data:
+  caddy_config:
   grafana_data:
   db_data:
 
 networks:
-  chat-net:
+  app-net:
     driver: bridge

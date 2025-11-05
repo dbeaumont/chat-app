@@ -1,5 +1,6 @@
 package com.example.chat.infrastructure.web;
 
+import org.springframework.lang.NonNull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,7 +19,7 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
     public static final String MDC_KEY = "correlationId";
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
         String cid = request.getHeader(HEADER);
         if (cid == null || cid.isBlank()) {

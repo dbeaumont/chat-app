@@ -3,16 +3,17 @@ import { ApplicationConfig, APP_INITIALIZER, inject, importProvidersFrom } from 
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { OAuthModule, OAuthService, AuthConfig } from 'angular-oauth2-oidc';
 import { authBearerInterceptor } from './auth-bearer.interceptor';
+import { environment } from '../environments/environment';
 
-// ⚠️ Mets ces valeurs en phase avec frontend/src/environments/environment*.ts
 const authConfig: AuthConfig = {
-  issuer: 'http://localhost:8081/realms/demo',
-  clientId: 'chat-app',
-  redirectUri: 'http://localhost:8888/',
+  issuer: environment.oidc.issuer,
+  clientId: environment.oidc.clientId,
+  redirectUri: environment.oidc.redirectUri,
+  postLogoutRedirectUri: environment.oidc.postLogoutRedirectUri,
   responseType: 'code',              // Code + PKCE
-  scope: 'openid profile email',
-  requireHttps: false,               // dev only (HTTP)
-  showDebugInformation: false
+  scope: environment.oidc.scope,
+  requireHttps: environment.production,
+  showDebugInformation: !environment.production
 };
 
 // Déclenche la redirection si aucun token n’est trouvé.
@@ -34,7 +35,7 @@ export const appConfig: ApplicationConfig = {
       OAuthModule.forRoot({
         resourceServer: {
           sendAccessToken: true,
-          allowedUrls: ['http://localhost:9080']
+          allowedUrls: [environment.apiBaseUrl]
         }
       })
     ),

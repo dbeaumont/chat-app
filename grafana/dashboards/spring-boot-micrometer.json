@@ -1,0 +1,71 @@
+{
+  "uid": "spring-boot-perceptron",
+  "title": "Spring Boot Micrometer - Perceptron Backend",
+  "schemaVersion": 38,
+  "version": 1,
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Uptime (s)",
+      "targets": [ { "expr": "process_uptime_seconds{application=\"perceptron-backend\"}" } ],
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Heap Used (MB)",
+      "targets": [ { "expr": "jvm_memory_used_bytes{application=\"perceptron-backend\",area=\"heap\"} / 1024 / 1024" } ],
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "HTTP Requests/s",
+      "targets": [ { "expr": "sum(rate(http_server_requests_seconds_count{application=\"perceptron-backend\"}[1m]))" } ],
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "type": "graph",
+      "title": "HTTP request duration (avg)",
+      "targets": [ { "expr": "rate(http_server_requests_seconds_sum{application=\"perceptron-backend\"}[1m]) / rate(http_server_requests_seconds_count{application=\"perceptron-backend\"}[1m])", "legendFormat": "{{uri}}" } ],
+      "gridPos": { "x": 0, "y": 4, "w": 18, "h": 8 }
+    },
+    {
+      "type": "graph",
+      "title": "JVM Heap Usage",
+      "targets": [
+        { "expr": "jvm_memory_used_bytes{application=\"perceptron-backend\",area=\"heap\"}", "legendFormat": "used" },
+        { "expr": "jvm_memory_max_bytes{application=\"perceptron-backend\",area=\"heap\"}", "legendFormat": "max" }
+      ],
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 }
+    },
+    {
+      "type": "graph",
+      "title": "GC Pauses (count/5m)",
+      "targets": [ { "expr": "rate(jvm_gc_pause_seconds_count{application=\"perceptron-backend\"}[5m])", "legendFormat": "{{action}}" } ],
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 }
+    },
+    {
+      "type": "graph",
+      "title": "Threads Live",
+      "targets": [ { "expr": "jvm_threads_live_threads{application=\"perceptron-backend\"}" } ],
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 }
+    },
+    {
+      "type": "graph",
+      "title": "System CPU usage (%)",
+      "targets": [ { "expr": "system_cpu_usage{application=\"perceptron-backend\"} * 100" } ],
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "type": "datasource",
+        "name": "DS_PROMETHEUS",
+        "query": "prometheus",
+        "current": { "selected": true, "text": "Prometheus", "value": "Prometheus" }
+      }
+    ]
+  },
+  "time": { "from": "now-15m", "to": "now" }
+}

@@ -7,7 +7,7 @@ export const authBearerInterceptor: HttpInterceptorFn = (req, next) => {
   const oauth = inject(OAuthService);
   const token = oauth.getAccessToken();
 
-  if (token && req.url.startsWith('http://localhost:9080')) {
+  if (token && req.url.startsWith('https://localhost')) {   // Backend
     req = req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
   }
 

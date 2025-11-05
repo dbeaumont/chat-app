@@ -1,12 +1,12 @@
 export const environment = {
   "production": false,
   "oidc": {
-    "issuer": "http://localhost:8081/realms/demo",
-    "clientId": "chat-app",
-    "redirectUri": "http://localhost:8888/",
+    "issuer": "https://localhost/keycloak/realms/demo",
+    "clientId": "frontend",
+    "redirectUri": "https://localhost/",
     "scope": "openid profile email",
-    "silentRefreshRedirectUri": "http://localhost:8888/silent-refresh.html",
-    "postLogoutRedirectUri": "http://localhost:8888/"
+    "silentRefreshRedirectUri": "https://localhost/silent-refresh.html",
+    "postLogoutRedirectUri": "https://localhost/"
   },
-  "apiBaseUrl": "http://localhost:9080"
+  "apiBaseUrl": "https://localhost"
 } as const;
