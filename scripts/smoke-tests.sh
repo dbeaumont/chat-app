@@ -1,4 +1,3 @@
-\
 #!/usr/bin/env bash
 # Smoke tests for Chat App stack (Frontend, Backend, Keycloak)
 # Usage:

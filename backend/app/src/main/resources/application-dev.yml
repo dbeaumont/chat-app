@@ -1,5 +1,6 @@
 server:
   port: ${SERVER_PORT:8080}
+  forward-headers-strategy: framework # Pour respecter les en-têtes X-Forwarded-* du proxy
 
 spring:
   datasource:
@@ -8,8 +9,8 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:chat}
   jpa:
     hibernate:
-      ddl-auto: validate      # on laisse flyway générer le schéma
-    show-sql: true  
+      ddl-auto: validate # on laisse flyway générer le schéma
+    show-sql: true
     properties:
       hibernate.format_sql: true
       hibernate.jdbc.time_zone: UTC
@@ -21,8 +22,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${OIDC_ISSUER_URI}
-          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:}
+          issuer-uri: ${OIDC_ISSUER_URI:http://localhost:8081/realms/demo}
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCE_SERVER_JWT_JWK_SET_URI:http://localhost:8081/realms/demo/protocol/openid-connect/certs}
 
 logging:
   level:
@@ -36,4 +37,3 @@ management:
     web:
       exposure:
         include: health,info
-

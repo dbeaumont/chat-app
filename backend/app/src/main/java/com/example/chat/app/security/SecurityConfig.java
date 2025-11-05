@@ -10,9 +10,13 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.Arrays;
@@ -42,7 +46,7 @@ public class SecurityConfig {
   );
 
   
-  @Value("${OIDC_LOGOUT_REDIRECT_URI:http://localhost:9080/}")
+  @Value("${OIDC_LOGOUT_REDIRECT_URI:https://localhost}")   // backend
   private String postLogoutRedirectUri;
 
 
@@ -109,6 +113,24 @@ public class SecurityConfig {
             .accessDeniedHandler(new BearerTokenAccessDeniedHandler()));
 
     return http.build();
+  }
+
+  @Bean
+  JwtDecoder jwtDecoder(
+      @Value("${OIDC_ISSUER_URI:http://localhost:8081/realms/demo}") String issuerUri,
+      @Value("${SPRING_SECURITY_OAUTH2_RESOURCE_SERVER_JWT_JWK_SET_URI:}") String jwkSetUri
+  ) {
+    NimbusJwtDecoder decoder;
+    if (StringUtils.hasText(jwkSetUri)) {
+      log.info("Startup: configuring JwtDecoder with JWK set URI {}", jwkSetUri);
+      decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+    } else {
+      log.info("Startup: configuring JwtDecoder with issuer {}", issuerUri);
+      decoder = NimbusJwtDecoder.withIssuerLocation(issuerUri).build();
+    }
+
+    decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(issuerUri));
+    return decoder;
   }
 
 }

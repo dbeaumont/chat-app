@@ -1,5 +1,30 @@
 <div class="container">
-  <h1>Chat Messages</h1>
+  <div class="header">
+    <h1>Chat Messages</h1>
+    <div class="session-info" *ngIf="isAuthenticated()">
+      <button type="button" class="user-trigger" (click)="toggleMenu()">
+        {{ displayName() ?? 'Utilisateur' }}
+        <span class="chevron" [class.open]="menuOpen()">&#9662;</span>
+      </button>
+      <div class="user-menu" *ngIf="menuOpen()">
+        <button type="button" (click)="openProfile()">view profile</button>
+        <button type="button" (click)="signOut()">logout</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="profile-card" *ngIf="profileVisible() && userClaims() as claims">
+    <div class="profile-card__header">
+      <h2>Profile</h2>
+      <button type="button" (click)="closeProfile()">Close</button>
+    </div>
+    <dl>
+      <div class="profile-row" *ngFor="let entry of claims | keyvalue: claimSorter">
+        <dt>{{ entry.key }}</dt>
+        <dd>{{ entry.value }}</dd>
+      </div>
+    </dl>
+  </section>
 
   <input type="text" [value]="input()" (input)="input.set($event.target.value)" placeholder="Type your message..." />
   <button (click)="send()">Send</button>

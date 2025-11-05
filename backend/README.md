@@ -56,13 +56,13 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${OIDC_ISSUER_URI}
-          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:}
+          issuer-uri: ${OIDC_ISSUER_URI:http://localhost:8081/realms/demo}
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCE_SERVER_JWT_JWK_SET_URI:http://localhost:8081/realms/demo/protocol/openid-connect/certs}
 ```
 
 ### Variables d’environnement
 - `OIDC_ISSUER_URI` : `http://localhost:8081/realms/demo`
-- `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI` : `http://keycloak:8080/realms/demo/protocol/openid-connect/certs`
+- `SPRING_SECURITY_OAUTH2_RESOURCE_SERVER_JWT_JWK_SET_URI` : `http://keycloak:8080/realms/demo/protocol/openid-connect/certs`
 - `CORS_ALLOWED_ORIGINS` : `http://localhost,http://localhost:8888,...`
 
 ## Tests manuels (curl)

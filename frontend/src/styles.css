@@ -1,5 +1,24 @@
 :root { font-family: system-ui, sans-serif; }
 .container { max-width: 720px; margin: 2rem auto; padding: 1rem; }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.session-info { margin-left: auto; position: relative; display: flex; align-items: center; white-space: nowrap; }
+.user-trigger { display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid transparent; border-radius: 9999px; background: none; padding: 0.35rem 0.85rem; font-weight: 600; cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease; }
+.user-trigger:hover,
+.user-trigger:focus-visible { border-color: #cbd5e1; background-color: #f1f5f9; outline: none; }
+.user-menu { position: absolute; top: calc(100% + 0.25rem); right: 0; display: flex; flex-direction: column; min-width: 160px; border: 1px solid #e2e8f0; border-radius: 0.5rem; background: #fff; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12); z-index: 10; }
+.user-menu button { width: 100%; border: none; background: none; padding: 0.6rem 0.9rem; text-align: left; font: inherit; cursor: pointer; border-radius: 0.5rem; }
+.user-menu button:hover,
+.user-menu button:focus-visible { background-color: #f1f5f9; outline: none; }
+.chevron { font-size: 0.75rem; transition: transform 0.2s ease; }
+.chevron.open { transform: rotate(180deg); display: inline-block; }
+.profile-card { margin: 1rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 0.75rem; background: #f8fafc; }
+.profile-card__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.profile-card button { padding: 0.4rem 0.75rem; }
+.profile-card dl { margin: 0; }
+.profile-row { display: grid; grid-template-columns: 1fr 2fr; gap: 0.5rem; padding: 0.4rem 0; border-top: 1px solid #e2e8f0; }
+.profile-row:first-of-type { border-top: none; }
+.profile-row dt { font-weight: 600; color: #1f2937; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.04em; }
+.profile-row dd { margin: 0; color: #1e293b; word-break: break-word; font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.85rem; }
 input[type="text"] { width: 100%; padding: .5rem; margin-bottom: .5rem; }
 button { padding: .5rem .75rem; }
 ul { list-style: none; padding-left: 0; }

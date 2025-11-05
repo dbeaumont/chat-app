@@ -1,0 +1,44 @@
+{
+    email your.email@example.com
+    log {
+        output stdout
+        format console
+        level DEBUG
+    }
+    local_certs
+}
+
+
+https://localhost {
+    encode gzip
+
+    log {
+        output stdout
+        format console
+        level DEBUG
+    }
+
+    # Montage des certificats du host pour caddy
+    tls /etc/caddy/certs/localhost.pem /etc/caddy/certs/localhost-key.pem
+ 
+    # Backend API - ⚠️ ne pas strip_prefix ici
+    @api path /api* /actuator* /v3/api-docs* /swagger-ui* /management*
+    handle @api {
+        reverse_proxy backend:8080
+    }
+
+    # Keycloak (https required by Keycloak)
+    handle /keycloak* {
+        reverse_proxy keycloak:8080 {
+            header_up Host {http.request.host}
+            header_up X-Forwarded-Port 443
+            header_up X-Forwarded-Prefix /keycloak
+            header_up X-Script-Name /keycloak
+        }
+    }
+
+    # Frontend Angular (fallback)
+    handle {
+        reverse_proxy frontend:80
+    }
+}

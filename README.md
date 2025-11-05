@@ -8,6 +8,9 @@
   - [Sommaire](#sommaire)
   - [Vue d’ensemble](#vue-densemble)
   - [Architecture \& Services](#architecture--services)
+  - [Endpoints](#endpoints)
+    - [HTTPS (via Caddy)](#https-via-caddy)
+    - [HTTP](#http)
   - [Sécurité (OIDC / JWT / CORS)](#sécurité-oidc--jwt--cors)
     - [Principe](#principe)
     - [Alignement `issuer` et JWK (important en Docker)](#alignement-issuer-et-jwk-important-en-docker)
@@ -39,6 +42,17 @@ La **base PostgreSQL** stocke les messages. La télémétrie est exposée à **P
 - **keycloak** : serveur OIDC, gère identité & jetons.
 - **db (PostgreSQL)** : stockage applicatif.
 - **prometheus / grafana / cadvisor** : monitoring (optionnel).
+
+## Endpoints
+
+### HTTPS (via Caddy)
+- **frontend** : https://localhost/
+- **keycloak** : https://localhost/keycloak
+- **backend**  : https://localhost/api
+
+### HTTP
+- **prometheus** : http://localhost:9090
+- **grafana** : http://localhost:3000
 
 ## Sécurité (OIDC / JWT / CORS)
 ### Principe

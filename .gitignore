@@ -45,6 +45,7 @@ Thumbs.db
 docker-compose.override.yml
 .env
 .env.dev
+.certs/
 
 # =========================
 # Logs & Temp
