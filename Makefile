@@ -142,7 +142,7 @@ env: ## Generate a fresh .env file with sensible defaults (overwrites existing)
 "" \
 "# Backend" \
 "OIDC_ISSUER_URI=http://keycloak:8080/realms/demo" \
-"SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/demo/protocol/openid-connect/certs" \
+"SPRING_SECURITY_OAUTH2_RESOURCE_SERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/demo/protocol/openid-connect/certs" \
 "OIDC_CLIENT_ID=chat-app" \
 "OIDC_CLIENT_SECRET=" \
 "OIDC_PROVIDER_ID=oidc" \
@@ -191,7 +191,7 @@ env-dev: ## Generate a .env.dev file for development (coexists with .env)
 "" \
 "# OIDC / JWT" \
 "OIDC_ISSUER_URI=http://keycloak:8080/realms/demo" \
-"SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/demo/protocol/openid-connect/certs" \
+"SPRING_SECURITY_OAUTH2_RESOURCE_SERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/demo/protocol/openid-connect/certs" \
 "" \
 "# CORS (dev: permissive patterns + common origins)" \
 "CORS_ALLOWED_ORIGINS=http://localhost,http://localhost:8888,http://127.0.0.1:8888,http://localhost:4200,*" \

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-brew install mkcert
+brew install mkcert || sudo apt-get install mkcert
 mkcert -install
 mkcert localhost
 mkdir -p ../.certs/
