@@ -1,10 +1,10 @@
-# Chat App — Stack complète (Angular + Spring Boot + PostgreSQL + Keycloak)
+# Chat App — Stack complète (Angular + Spring Boot + PostgreSQL + Keycloak + Caddy)
 
-> Démarrage rapide avec `docker compose up --build`  
-> Frontend : http://localhost:8888 • Backend : http://localhost:9080 • Keycloak : http://localhost:8081
+> Démarrage rapide avec `docker compose up --build` ou avec le facilitateur `make up`
+> Frontend : https://localhost • Backend : https://localhost/api • Keycloak : https://localhost/keycloak
 
 ## Sommaire
-- [Chat App — Stack complète (Angular + Spring Boot + PostgreSQL + Keycloak)](#chat-app--stack-complète-angular--spring-boot--postgresql--keycloak)
+- [Chat App — Stack complète (Angular + Spring Boot + PostgreSQL + Keycloak + Caddy)](#chat-app--stack-complète-angular--spring-boot--postgresql--keycloak)
   - [Sommaire](#sommaire)
   - [Vue d’ensemble](#vue-densemble)
   - [Architecture \& Services](#architecture--services)
@@ -33,15 +33,16 @@
   - [Troubleshooting](#troubleshooting)
 
 ## Vue d’ensemble
-Application de démonstration **SPA Angular** (front) + **API Spring Boot** (back), sécurisée par **Keycloak (OIDC)**.  
+Application de démonstration **SPA Angular** (front) + **API Spring Boot** (back), sécurisée par **Keycloak (OIDC)**, avec le terminateur SSL **Caddy**.  
 La **base PostgreSQL** stocke les messages. La télémétrie est exposée à **Prometheus/Grafana**.
 
 ## Architecture & Services
 - **frontend** (Angular + Nginx) : sert l’UI et émet des appels HTTP vers `backend`.
 - **backend** (Spring Boot 3) : API REST (`/api/**`), Resource Server **JWT**.
-- **keycloak** : serveur OIDC, gère identité & jetons.
+- **keycloak** : serveur OIDC, gère identité & jetons, flow **Authorization Code Flow with PKCE**.
 - **db (PostgreSQL)** : stockage applicatif.
 - **prometheus / grafana / cadvisor** : monitoring (optionnel).
+- **caddy** : terminateur SSL et proxy.
 
 ## Endpoints
 
@@ -94,8 +95,8 @@ docker compose up --build
 - Backend : http://localhost:9080  
 - Keycloak : http://localhost:8081
 
-### Fichier `.env` minimal (optionnel)
-Vous pouvez créer un fichier `.env` (à la racine du projet) si vous souhaitez surcharger facilement certaines valeurs :
+### Fichier `.env`
+Pour créer un fichier `.env` (à la racine du projet) :
 ```env
 OIDC_ISSUER_URI=http://localhost:8081/realms/demo
 SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/demo/protocol/openid-connect/certs
